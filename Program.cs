@@ -1,11 +1,11 @@
 ﻿using AdamServer.Core;
 using AdamServer.Interfaces;
+using AdamServer.Services.Common;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Core;
-using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -31,6 +31,7 @@ namespace AdamServer
                 .CreateLogger();
 
             builder.Services.AddLogging(s => s.AddSerilog(mainLogger, dispose: true));
+            builder.Services.AddSingleton<IShellCommandService, ShellCommandService>();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {

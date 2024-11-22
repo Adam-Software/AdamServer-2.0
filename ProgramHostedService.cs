@@ -10,15 +10,28 @@ namespace AdamServer
 {
     public sealed class ProgramHostedService : IHostedService, IHostedLifecycleService
     {
-        private readonly Task mCompletedTask = Task.CompletedTask;
+        #region Services
+        
         private readonly ILogger<ProgramHostedService> mLoggerService;
+        private readonly IShellCommandService mShellCommandService;
+
+        #endregion
+
+        #region Var
+
+        private readonly Task mCompletedTask = Task.CompletedTask;
+
+        #endregion
+
 
         public ProgramHostedService(IServiceProvider serviceProvider)
         {
             mLoggerService = serviceProvider.GetService<ILogger<ProgramHostedService>>();
+            mShellCommandService = serviceProvider.GetService<IShellCommandService>();
 
             var option = serviceProvider.GetService<IAppSettingsOptionsService>();
             var appLifetime = serviceProvider.GetService<IHostApplicationLifetime>();
+
 
             appLifetime.ApplicationStarted.Register(OnStarted);
             appLifetime.ApplicationStopping.Register(OnStopping);
@@ -45,9 +58,16 @@ namespace AdamServer
             return mCompletedTask;
         }
 
-        private void OnStarted()
+        private async void OnStarted()
         {
             mLoggerService.LogInformation("4. OnStarted has been called.");
+
+            mLoggerService.LogInformation("Test execute command by service");
+            var result = await  mShellCommandService.ExecuteCommandAsync("ipconfig");
+
+            mLoggerService.LogInformation("Result execute command by service");
+            mLoggerService.LogInformation("{result}", result);
+
         }
 
         private void OnStopping()
