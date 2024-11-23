@@ -24,6 +24,7 @@
     <None Remove=".gitattributes" />
     <None Remove=".gitignore" />
     <None Remove="appsettings.json" />
+    <None Remove="LICENSE.txt" />
   </ItemGroup>
 
   <ItemGroup>

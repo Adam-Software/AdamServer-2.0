@@ -9,7 +9,7 @@
 
 ### Execute shell command
 
-[incoming command] => [web socket?] =>  [execute python] => [websocket?] => [execute result]
+[incoming command] => [web socket? || simple web api] =>  [execute python] => [websocket?] => [execute result]
 
 ### Service managment
 

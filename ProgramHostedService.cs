@@ -37,66 +37,65 @@ namespace AdamServer
             appLifetime.ApplicationStopping.Register(OnStopping);
             appLifetime.ApplicationStopped.Register(OnStopped);
 
-            mLoggerService.LogInformation("option.Test3 = {option.Test3}", option.Test);
+            mLoggerService.LogTrace("option.Test3 = {option.Test3}", option.Test);
         }
 
         public Task StartingAsync(CancellationToken cancellationToken)
         {
-            mLoggerService.LogInformation("1. StartingAsync has been called.");
+            mLoggerService.LogTrace("1. StartingAsync has been called.");
             return mCompletedTask;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            mLoggerService.LogInformation("2. StartAsync has been called.");
+            mLoggerService.LogTrace("2. StartAsync has been called.");
             return mCompletedTask;
         }
 
         public Task StartedAsync(CancellationToken cancellationToken)
         {
-            mLoggerService.LogInformation("3. StartedAsync has been called.");
+            mLoggerService.LogTrace("3. StartedAsync has been called.");
             return mCompletedTask;
         }
 
         private async void OnStarted()
         {
-            mLoggerService.LogInformation("4. OnStarted has been called.");
+            mLoggerService.LogTrace("4. OnStarted has been called.");
 
-            mLoggerService.LogInformation("Test execute command by service");
-            var result = await  mShellCommandService.ExecuteCommandAsync("ipconfig");
+            mLoggerService.LogTrace("Test execute command by service");
+            var result = await  mShellCommandService.ExecuteCommandAsync("ping -t localhost");
 
-            mLoggerService.LogInformation("Result execute command by service");
+            mLoggerService.LogTrace("Result execute command by service");
             mLoggerService.LogInformation("{result}", result);
-
         }
 
         private void OnStopping()
         {
-            mLoggerService.LogInformation("5. OnStopping has been called.");
+            mLoggerService.LogTrace("5. OnStopping has been called.");
         }
 
 
         public Task StoppingAsync(CancellationToken cancellationToken)
         {
-            mLoggerService.LogInformation("6. StoppingAsync has been called.");
+            mLoggerService.LogTrace("6. StoppingAsync has been called.");
             return mCompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            mLoggerService.LogInformation("7. StopAsync has been called.");
+            mLoggerService.LogTrace("7. StopAsync has been called.");
             return mCompletedTask;
         }
 
         public Task StoppedAsync(CancellationToken cancellationToken)
         {
-            mLoggerService.LogInformation("8. StoppedAsync has been called.");
+            mLoggerService.LogTrace("8. StoppedAsync has been called.");
             return mCompletedTask;
         }
 
         private void OnStopped()
         {
-            mLoggerService.LogInformation("9. OnStopped has been called.");
+            mLoggerService.LogTrace("9. OnStopped has been called.");
         }
 
     }
