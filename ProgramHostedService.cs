@@ -58,16 +58,9 @@ namespace AdamServer
             return mCompletedTask;
         }
 
-        private async void OnStarted()
+        private void OnStarted()
         {
             mLoggerService.LogTrace("4. OnStarted has been called.");
-
-            mLoggerService.LogTrace("Test execute command by service");
-            var command = "ping -t localhost";
-            var result = await  mShellCommandService.ExecuteCommandAsync(command);
-
-            mLoggerService.LogTrace("Result execute command {command} by service", command);
-            mLoggerService.LogInformation("{result}", result);
         }
 
         private void OnStopping()

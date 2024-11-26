@@ -1,6 +1,7 @@
 ﻿using AdamServer.Core;
 using AdamServer.Interfaces;
 using AdamServer.Services.Common;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,7 +17,7 @@ namespace AdamServer
     {
         static async Task Main(string[] args)
         {
-            HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+            WebApplicationBuilder builder = WebApplication.CreateSlimBuilder(args); //Host.CreateApplicationBuilder(args);
             builder.Configuration.Sources.Clear();
             builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
@@ -30,8 +31,10 @@ namespace AdamServer
                             outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
                 .CreateLogger();
 
+
             builder.Services.AddLogging(s => s.AddSerilog(mainLogger, dispose: true));
             builder.Services.AddSingleton<IShellCommandService, ShellCommandService>();
+            builder.Services.AddSingleton<IWebApiHandlerService, WebApiHandlerService>();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
@@ -47,8 +50,15 @@ namespace AdamServer
 
             builder.Services.AddHostedService<ProgramHostedService>();
 
-            using IHost host = builder.Build();
-            await host.RunAsync();
+            //using IHost host = builder.Build();
+            //await host.RunAsync();
+
+            var app = builder.Build();
+            var handler = app.Services.GetRequiredService<IWebApiHandlerService>();
+
+            app.MapGet("/{command}", (string command) => handler.ExecuteCommandAsync(command));
+
+            await app.RunAsync();
         }
     }
 }
