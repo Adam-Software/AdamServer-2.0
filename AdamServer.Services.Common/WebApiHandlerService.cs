@@ -1,4 +1,5 @@
 ﻿using AdamServer.Interfaces;
+using AdamServer.Interfaces.WebApiHandlerService;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -19,12 +20,17 @@ namespace AdamServer.Services.Common
             mShellCommandService = serviceProvider.GetService<IShellCommandService>();
         }
 
-        public async Task<string> ExecuteCommandAsync(string command)
+        public async Task<string> ExecutePythonCommandAsync(PythonCommand command)
         {
-            var result = await mShellCommandService.ExecuteCommandAsync(command);
+            var result = await mShellCommandService.ExecuteCommandAsync(command.TextCommand);
             mLogger.LogTrace("Result execute command {command} by service", command);
             mLogger.LogTrace("{result}", result);
             return result;
+        }
+
+        public Task StopExecutePythonCommandAsync()
+        {
+            return Task.CompletedTask;
         }
     }
 }

@@ -9,8 +9,8 @@
 
 ### Execute shell command
 
-[incoming command] => [web socket? || simple web api] =>  [execute python] => [websocket?] => [execute result]
+[simple web api] => [base auth] => [command] =>  [execute python] => [websocket?] => [execute result]
 
 ### Service managment
 
-[simple web api] => [incoming command] => [execute bash] => [execute result] => [simple web api]
+[simple web api] => [base auth] => [command] => [execute bash (Linux) || execute cmd (Windows)] => [execute result] => [simple web api]

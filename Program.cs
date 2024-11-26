@@ -1,5 +1,7 @@
 ﻿using AdamServer.Core;
+using AdamServer.Core.Mappings;
 using AdamServer.Interfaces;
+using AdamServer.Interfaces.WebApiHandlerService;
 using AdamServer.Services.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -54,10 +56,9 @@ namespace AdamServer
             //await host.RunAsync();
 
             var app = builder.Build();
-            var handler = app.Services.GetRequiredService<IWebApiHandlerService>();
 
-            app.MapGet("/{command}", (string command) => handler.ExecuteCommandAsync(command));
-
+            PythonMapping.Map(app);
+            
             await app.RunAsync();
         }
     }

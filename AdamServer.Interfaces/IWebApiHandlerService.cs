@@ -1,9 +1,11 @@
-﻿using System.Threading.Tasks;
+﻿using AdamServer.Interfaces.WebApiHandlerService;
+using System.Threading.Tasks;
 
 namespace AdamServer.Interfaces
 {
     public interface IWebApiHandlerService
     {
-        public Task<string> ExecuteCommandAsync(string command);
+        public Task<string> ExecutePythonCommandAsync(PythonCommand command);
+        public Task StopExecutePythonCommandAsync();
     }
 }

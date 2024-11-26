@@ -23,7 +23,6 @@ namespace AdamServer
 
         #endregion
 
-
         public ProgramHostedService(IServiceProvider serviceProvider)
         {
             mLoggerService = serviceProvider.GetService<ILogger<ProgramHostedService>>();
@@ -32,12 +31,9 @@ namespace AdamServer
             var option = serviceProvider.GetService<IAppSettingsOptionsService>();
             var appLifetime = serviceProvider.GetService<IHostApplicationLifetime>();
 
-
             appLifetime.ApplicationStarted.Register(OnStarted);
             appLifetime.ApplicationStopping.Register(OnStopping);
             appLifetime.ApplicationStopped.Register(OnStopped);
-
-            mLoggerService.LogTrace("option.Test3 = {option.Test3}", option.Test);
         }
 
         public Task StartingAsync(CancellationToken cancellationToken)
