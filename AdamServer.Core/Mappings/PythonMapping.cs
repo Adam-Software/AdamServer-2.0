@@ -1,7 +1,7 @@
-﻿using AdamServer.Interfaces.WebApiHandlerService;
-using AdamServer.Interfaces;
+﻿using AdamServer.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using AdamServer.Interfaces.WebApiHandlerService.Models;
 
 namespace AdamServer.Core.Mappings
 {

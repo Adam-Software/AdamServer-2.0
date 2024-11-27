@@ -1,4 +1,4 @@
-﻿using AdamServer.Interfaces.WebApiHandlerService;
+﻿using AdamServer.Interfaces.WebApiHandlerService.Models;
 using System.Threading.Tasks;
 
 namespace AdamServer.Interfaces

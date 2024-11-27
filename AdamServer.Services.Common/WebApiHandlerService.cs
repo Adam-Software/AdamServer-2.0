@@ -1,5 +1,5 @@
 ﻿using AdamServer.Interfaces;
-using AdamServer.Interfaces.WebApiHandlerService;
+using AdamServer.Interfaces.WebApiHandlerService.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
