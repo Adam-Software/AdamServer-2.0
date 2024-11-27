@@ -1,4 +1,4 @@
-﻿namespace AdamServer.Interfaces.WebApiHandlerService
+﻿namespace AdamServer.Interfaces.WebApiHandlerService.Models
 {
     public class PythonCommand
     {
