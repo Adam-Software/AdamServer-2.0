@@ -4,6 +4,6 @@ namespace AdamServer.Interfaces
 {
     public interface IShellCommandService
     {
-        Task<string> ExecuteCommandAsync(string command);
+        public Task<string> ExecuteCommandAsync(string command);
     }
 }
