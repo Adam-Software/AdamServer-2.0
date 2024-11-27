@@ -16,12 +16,18 @@
     <Compile Remove="AdamServer.Core\**" />
     <Compile Remove="AdamServer.Interfaces\**" />
     <Compile Remove="AdamServer.Services.Common\**" />
+    <Compile Remove="AdamServer.Services.Linux\**" />
+    <Compile Remove="AdamServer.Services.Windows\**" />
     <EmbeddedResource Remove="AdamServer.Core\**" />
     <EmbeddedResource Remove="AdamServer.Interfaces\**" />
     <EmbeddedResource Remove="AdamServer.Services.Common\**" />
+    <EmbeddedResource Remove="AdamServer.Services.Linux\**" />
+    <EmbeddedResource Remove="AdamServer.Services.Windows\**" />
     <None Remove="AdamServer.Core\**" />
     <None Remove="AdamServer.Interfaces\**" />
     <None Remove="AdamServer.Services.Common\**" />
+    <None Remove="AdamServer.Services.Linux\**" />
+    <None Remove="AdamServer.Services.Windows\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,6 +47,8 @@
     <ProjectReference Include="AdamServer.Core\AdamServer.Core.csproj" />
     <ProjectReference Include="AdamServer.Interfaces\AdamServer.Interfaces.csproj" />
     <ProjectReference Include="AdamServer.Services.Common\AdamServer.Services.Common.csproj" />
+    <ProjectReference Include="AdamServer.Services.Linux\AdamServer.Services.Linux.csproj" />
+    <ProjectReference Include="AdamServer.Services.Windows\AdamServer.Services.Windows.csproj" />
   </ItemGroup>
 
 </Project>

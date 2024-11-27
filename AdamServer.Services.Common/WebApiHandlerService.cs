@@ -1,7 +1,5 @@
 ﻿using AdamServer.Interfaces;
-using AdamServer.Interfaces.WebApiHandlerService.Models;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using AdamServer.Interfaces.WebApiHandlerService;
 
 namespace AdamServer.Services.Common
 {
@@ -9,28 +7,15 @@ namespace AdamServer.Services.Common
     {
         #region Services
 
-        private readonly ILogger<WebApiHandlerService> mLogger;
-        private readonly IShellCommandService mShellCommandService;
+        private readonly IServiceProvider mServiceProvider;
         
         #endregion
 
-        public WebApiHandlerService(IServiceProvider serviceProvider) 
-        { 
-            mLogger = serviceProvider.GetService<ILogger<WebApiHandlerService>>();
-            mShellCommandService = serviceProvider.GetService<IShellCommandService>();
+        public WebApiHandlerService(IServiceProvider serviceProvider)
+        {
+            mServiceProvider = serviceProvider;
         }
 
-        public async Task<string> ExecutePythonCommandAsync(PythonCommand command)
-        {
-            var result = await mShellCommandService.ExecuteCommandAsync(command.TextCommand);
-            mLogger.LogTrace("Result execute command {command} by service", command);
-            mLogger.LogTrace("{result}", result);
-            return result;
-        }
-
-        public Task StopExecutePythonCommandAsync()
-        {
-            return Task.CompletedTask;
-        }
+        public IPythonHandler PythonHandler => new PythonHandler(mServiceProvider);
     }
 }

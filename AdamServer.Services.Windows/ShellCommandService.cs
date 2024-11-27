@@ -1,9 +1,11 @@
 ﻿using AdamServer.Interfaces;
 using Chell;
 using System.Text;
+using System;
+using System.Threading.Tasks;
 using static Chell.Exports;
 
-namespace AdamServer.Services.Common
+namespace AdamServer.Services.Windows
 {
     public class ShellCommandService : IShellCommandService
     {
@@ -11,7 +13,6 @@ namespace AdamServer.Services.Common
         {
             Env.Shell.UseCmd();
             Env.Verbosity = ChellVerbosity.Silent;
-            
         }
         public async Task<string> ExecuteCommandAsync(string command)
         {

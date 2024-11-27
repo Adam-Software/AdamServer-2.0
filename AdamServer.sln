@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdamServer.Services.Common"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdamServer.Core", "AdamServer.Core\AdamServer.Core.csproj", "{A9A45B17-7D00-479A-8598-5291B54817FE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdamServer.Services.Linux", "AdamServer.Services.Linux\AdamServer.Services.Linux.csproj", "{CA619A5E-BE0A-454F-8181-00C0DA07BBAF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdamServer.Services.Windows", "AdamServer.Services.Windows\AdamServer.Services.Windows.csproj", "{7C73CE87-43F2-4CF4-B43C-2AFAAA6CC170}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{A9A45B17-7D00-479A-8598-5291B54817FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9A45B17-7D00-479A-8598-5291B54817FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9A45B17-7D00-479A-8598-5291B54817FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA619A5E-BE0A-454F-8181-00C0DA07BBAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA619A5E-BE0A-454F-8181-00C0DA07BBAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA619A5E-BE0A-454F-8181-00C0DA07BBAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA619A5E-BE0A-454F-8181-00C0DA07BBAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C73CE87-43F2-4CF4-B43C-2AFAAA6CC170}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C73CE87-43F2-4CF4-B43C-2AFAAA6CC170}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C73CE87-43F2-4CF4-B43C-2AFAAA6CC170}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C73CE87-43F2-4CF4-B43C-2AFAAA6CC170}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,12 +1,10 @@
 ﻿using AdamServer.Core;
 using AdamServer.Core.Mappings;
 using AdamServer.Interfaces;
-using AdamServer.Interfaces.WebApiHandlerService;
 using AdamServer.Services.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Core;
 using System.Runtime.InteropServices;
@@ -35,19 +33,21 @@ namespace AdamServer
 
 
             builder.Services.AddLogging(s => s.AddSerilog(mainLogger, dispose: true));
-            builder.Services.AddSingleton<IShellCommandService, ShellCommandService>();
+
+            /*Obsolete AuthenticationScheme*/
+            //builder.Services.AddAuthentication().AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("", options => { });
+
+            
             builder.Services.AddSingleton<IWebApiHandlerService, WebApiHandlerService>();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                //builder.Services.AddSingleton<IService>(new LinuxService());
-                //builder.Services.AddHostedService(serviceProvider => new LinuxHostedService(serviceProvider.GetService<IService>()));
+                builder.Services.AddSingleton<IShellCommandService, Services.Linux.ShellCommandService>();
             }
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                //builder.Services.AddSingleton<IService>(new WindowsService());
-                //builder.Services.AddHostedService(serviceProvider => new WindowsHostedService(serviceProvider.GetService<IService>()));
+                builder.Services.AddSingleton<IShellCommandService, Services.Windows.ShellCommandService>();
             }
 
             builder.Services.AddHostedService<ProgramHostedService>();
