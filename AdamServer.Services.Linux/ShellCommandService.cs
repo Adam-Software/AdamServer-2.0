@@ -5,7 +5,7 @@ namespace AdamServer.Services.Linux
 {
     public class ShellCommandService : IShellCommandService
     {
-        public Task<string> ExecuteCommandAsync(string command)
+        public Task ExecuteCommandAsync(string command)
         {
             throw new System.NotImplementedException();
         }

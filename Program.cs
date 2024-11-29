@@ -51,10 +51,7 @@ namespace AdamServer
             }
 
             builder.Services.AddHostedService<ProgramHostedService>();
-
-            //using IHost host = builder.Build();
-            //await host.RunAsync();
-
+            
             var app = builder.Build();
 
             PythonMapping.Map(app);

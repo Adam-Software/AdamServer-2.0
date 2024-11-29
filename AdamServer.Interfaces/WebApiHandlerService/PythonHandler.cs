@@ -8,7 +8,7 @@ namespace AdamServer.Interfaces.WebApiHandlerService
 {
     public interface IPythonHandler
     {
-        public Task<string> ExecutePythonCommandAsync(PythonCommand command);
+        public string ExecutePythonCommandAsync(PythonCommand command);
         public Task StopExecutePythonCommandAsync();
     }
 
@@ -26,12 +26,14 @@ namespace AdamServer.Interfaces.WebApiHandlerService
             mLogger = serviceProvider.GetRequiredService<ILogger<PythonHandler>>();
             mShellCommandService = serviceProvider.GetRequiredService<IShellCommandService>();
         }
-        public async Task<string> ExecutePythonCommandAsync(PythonCommand command)
+        public string ExecutePythonCommandAsync(PythonCommand command)
         {
-            var result = await mShellCommandService.ExecuteCommandAsync(command.TextCommand);
+            //var result = await mShellCommandService.ExecuteCommandAsync(command.TextCommand);
+            mShellCommandService.ExecuteCommandAsync(command.TextCommand);
             mLogger.LogTrace("Result execute command {command} by service", command);
-            mLogger.LogTrace("{result}", result);
-            return result;
+            //mLogger.LogTrace("{result}", result);
+            return "Ok";
+            //return result;
         }
 
         public Task StopExecutePythonCommandAsync()
