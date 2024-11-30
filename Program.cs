@@ -17,7 +17,7 @@ namespace AdamServer
     {
         static async Task Main(string[] args)
         {
-            WebApplicationBuilder builder = WebApplication.CreateSlimBuilder(args); //Host.CreateApplicationBuilder(args);
+            WebApplicationBuilder builder = WebApplication.CreateSlimBuilder(args); 
             builder.Configuration.Sources.Clear();
             builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
@@ -37,7 +37,6 @@ namespace AdamServer
             /*Obsolete AuthenticationScheme*/
             //builder.Services.AddAuthentication().AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("", options => { });
 
-            
             builder.Services.AddSingleton<IWebApiHandlerService, WebApiHandlerService>();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
