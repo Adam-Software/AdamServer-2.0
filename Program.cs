@@ -50,6 +50,7 @@ namespace AdamServer
             }
 
             builder.Services.AddHostedService<ProgramHostedService>();
+            builder.Services.AddHostedService<TcpStreamServerService>();
             
             var app = builder.Build();
 
