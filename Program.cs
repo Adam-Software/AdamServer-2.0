@@ -50,7 +50,7 @@ namespace AdamServer
             }
 
             builder.Services.AddHostedService<ProgramHostedService>();
-            builder.Services.AddHostedService<TcpStreamServerService>();
+            builder.Services.AddSingleton<ITcpPythonStreamClientService, TcpPythonStreamClientService>();
             
             var app = builder.Build();
 

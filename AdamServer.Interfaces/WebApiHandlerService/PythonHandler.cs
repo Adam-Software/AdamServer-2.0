@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace AdamServer.Interfaces.WebApiHandlerService
@@ -9,7 +10,7 @@ namespace AdamServer.Interfaces.WebApiHandlerService
     public interface IPythonHandler
     {
         public string ExecutePythonCommandAsync(PythonCommand command);
-        public Task StopExecutePythonCommandAsync();
+        public string StopExecutePythonCommandAsync();
     }
 
     public class PythonHandler : IPythonHandler
@@ -17,28 +18,27 @@ namespace AdamServer.Interfaces.WebApiHandlerService
         #region Services
 
         private readonly ILogger<PythonHandler> mLogger;
-        private readonly IShellCommandService mShellCommandService;
-
+        private readonly ITcpPythonStreamClientService mTcpPythonStreamClientService;
+        
         #endregion
 
         public PythonHandler(IServiceProvider serviceProvider) 
         {
             mLogger = serviceProvider.GetRequiredService<ILogger<PythonHandler>>();
-            mShellCommandService = serviceProvider.GetRequiredService<IShellCommandService>();
+            mTcpPythonStreamClientService = serviceProvider.GetRequiredService<ITcpPythonStreamClientService>();
         }
         public string ExecutePythonCommandAsync(PythonCommand command)
         {
-            //var result = await mShellCommandService.ExecuteCommandAsync(command.TextCommand);
-            mShellCommandService.ExecuteCommandAsync(command.TextCommand);
-            mLogger.LogTrace("Result execute command {command} by service", command);
-            //mLogger.LogTrace("{result}", result);
+            File.WriteAllText("C:\\Users\\Professional\\Downloads\\python-3.13.0-embed-amd64\\test2.py", command.TextCommand);
+            Task.Run(() => mTcpPythonStreamClientService.ExecuteAsync());
             return "Ok";
-            //return result;
+            
         }
 
-        public Task StopExecutePythonCommandAsync()
+        public string StopExecutePythonCommandAsync()
         {
-            return Task.CompletedTask; 
+            mTcpPythonStreamClientService.StopAsync();
+            return "Ok";
         }
     }
 }

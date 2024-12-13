@@ -13,7 +13,6 @@ namespace AdamServer
         #region Services
         
         private readonly ILogger<ProgramHostedService> mLoggerService;
-        private readonly IShellCommandService mShellCommandService;
 
         #endregion
 
@@ -26,7 +25,6 @@ namespace AdamServer
         public ProgramHostedService(IServiceProvider serviceProvider)
         {
             mLoggerService = serviceProvider.GetService<ILogger<ProgramHostedService>>();
-            mShellCommandService = serviceProvider.GetService<IShellCommandService>();
 
             var option = serviceProvider.GetService<IAppSettingsOptionsService>();
             var appLifetime = serviceProvider.GetService<IHostApplicationLifetime>();
