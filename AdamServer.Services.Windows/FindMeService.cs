@@ -13,15 +13,21 @@ namespace AdamServer.Services.Windows
 {
     public class FindMeService : BackgroundService, IFindMeService
     {
-        UdpClient Server = new UdpClient(18888);
-        byte[] ResponseData = Encoding.ASCII.GetBytes("I here");
-        ILogger<FindMeService> mLogger;
+        private readonly ILogger<FindMeService> mLogger;
+        private readonly Socket mSocket;
 
         public FindMeService(IServiceProvider serviceProvider)
         {
             mLogger = serviceProvider.GetRequiredService<ILogger<FindMeService>>();
+            mSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            
+            IPEndPoint ipEndPoint = new(IPAddress.Any, 18000);
+            mSocket.Bind(ipEndPoint);
 
-            mLogger.LogTrace("Start findme service!");
+            IPAddress ip = IPAddress.Parse("224.5.6.7");
+            mSocket.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.AddMembership, new MulticastOption(ip, IPAddress.Any));
+
+            mLogger.LogTrace("Start FindMe service!");
         }
 
       
@@ -31,14 +37,26 @@ namespace AdamServer.Services.Windows
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
-                    var ClientEp = new IPEndPoint(IPAddress.Any, 0);
-                    var ClientRequestData = Server.Receive(ref ClientEp);
-                    var ClientRequest = Encoding.ASCII.GetString(ClientRequestData);
+                    byte[] byteArray = new byte[10];
+                    Console.WriteLine("Waiting for data..");
 
-                    mLogger.LogInformation("Recived {ClientRequest} from {ClientEp}, sending response", ClientRequest, ClientEp.Address.ToString());
-                    Server.Send(ResponseData, ResponseData.Length, ClientEp);
+                    IPEndPoint ip = new(IPAddress.Any, 0);
+                    EndPoint remoteEndPoint = ip;
+
+                    mSocket.ReceiveFrom(byteArray, byteArray.Length, SocketFlags.None, ref remoteEndPoint);
+                    //mSocket.Receive(byteArray);
+                    EndPoint remoteEndpoint = mSocket.RemoteEndPoint;
+                    string str = Encoding.UTF8.GetString(byteArray, 0, byteArray.Length);
+
+                    Console.WriteLine($"Remote ep {remoteEndPoint}");
+                    Console.WriteLine("RX: " + str.Trim());
                 }
             }, stoppingToken);
+        }
+
+        private void ReciveCallback(IAsyncResult ar)
+        {
+            //throw new NotImplementedException();
         }
     }
 }
