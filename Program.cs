@@ -2,7 +2,6 @@
 using AdamServer.Core.Mappings;
 using AdamServer.Interfaces;
 using AdamServer.Services.Common;
-using AdamServer.Services.Windows;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

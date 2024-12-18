@@ -1,15 +1,12 @@
 ﻿using AdamServer.Interfaces;
 using Microsoft.Extensions.Hosting;
-using System;
 using System.Net.Sockets;
 using System.Net;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AdamServer.Services.Windows
+namespace AdamServer.Services.Common
 {
     public class FindMeService : BackgroundService, IFindMeService
     {
@@ -38,25 +35,19 @@ namespace AdamServer.Services.Windows
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     byte[] byteArray = new byte[10];
-                    Console.WriteLine("Waiting for data..");
-
+                    
                     IPEndPoint ip = new(IPAddress.Any, 0);
                     EndPoint remoteEndPoint = ip;
 
                     mSocket.ReceiveFrom(byteArray, byteArray.Length, SocketFlags.None, ref remoteEndPoint);
-                    //mSocket.Receive(byteArray);
+                    
                     EndPoint remoteEndpoint = mSocket.RemoteEndPoint;
                     string str = Encoding.UTF8.GetString(byteArray, 0, byteArray.Length);
 
-                    mLogger.LogTrace($"Remote ep {remoteEndPoint}");
-                    mLogger.LogTrace("RX: " + str.Trim());
+                    mLogger.LogTrace("Remote ep {remoteEndPoint}", remoteEndPoint);
+                    mLogger.LogTrace("RX: {recived}" + str.Trim());
                 }
             }, stoppingToken);
-        }
-
-        private void ReciveCallback(IAsyncResult ar)
-        {
-            //throw new NotImplementedException();
         }
     }
 }
