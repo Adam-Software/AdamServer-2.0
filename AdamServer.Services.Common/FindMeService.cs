@@ -34,6 +34,7 @@ namespace AdamServer.Services.Common
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
+                    mLogger.LogTrace("Start FindMe service reciving message");
                     byte[] byteArray = new byte[10];
                     
                     IPEndPoint ip = new(IPAddress.Any, 0);
