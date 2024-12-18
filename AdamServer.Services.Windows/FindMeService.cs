@@ -48,8 +48,8 @@ namespace AdamServer.Services.Windows
                     EndPoint remoteEndpoint = mSocket.RemoteEndPoint;
                     string str = Encoding.UTF8.GetString(byteArray, 0, byteArray.Length);
 
-                    Console.WriteLine($"Remote ep {remoteEndPoint}");
-                    Console.WriteLine("RX: " + str.Trim());
+                    mLogger.LogTrace($"Remote ep {remoteEndPoint}");
+                    mLogger.LogTrace("RX: " + str.Trim());
                 }
             }, stoppingToken);
         }
