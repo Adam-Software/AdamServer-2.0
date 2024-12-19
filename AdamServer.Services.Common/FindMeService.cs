@@ -16,7 +16,12 @@ namespace AdamServer.Services.Common
         public FindMeService(IServiceProvider serviceProvider)
         {
             mLogger = serviceProvider.GetRequiredService<ILogger<FindMeService>>();
-            mServer = new UdpClient(11000);
+
+            mServer = new UdpClient(11000)
+            {
+                EnableBroadcast = true
+            };
+
             mLogger.LogTrace("Start FindMe service!");
         }
 
