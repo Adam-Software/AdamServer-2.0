@@ -28,7 +28,10 @@ namespace AdamServer.Services.Common
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     mLogger.LogTrace("FindMe service waiting bradcast...");
+                    
                     byte[] byteArray = mServer.Receive(ref mRemoteEndPoint);
+                    mServer.Send(byteArray, mRemoteEndPoint);
+
                     mLogger.LogTrace("Remote ep {remoteEndPoint}", mRemoteEndPoint);
                 }
             }, stoppingToken);
