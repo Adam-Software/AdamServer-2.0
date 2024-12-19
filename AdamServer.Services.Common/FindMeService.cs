@@ -13,6 +13,8 @@ namespace AdamServer.Services.Common
         private readonly ILogger<FindMeService> mLogger;
         private readonly UdpClient mServer;
         private IPEndPoint mRemoteEndPoint = new(IPAddress.Any, 11000);
+        byte[] mReply = Encoding.UTF8.GetBytes("pong");
+
         public FindMeService(IServiceProvider serviceProvider)
         {
             mLogger = serviceProvider.GetRequiredService<ILogger<FindMeService>>();
@@ -28,18 +30,18 @@ namespace AdamServer.Services.Common
       
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            return Task.Run(async () =>
+            return Task.Run(() =>
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     mLogger.LogTrace("FindMe service waiting bradcast...");
-                    
                     byte[] byteArray = mServer.Receive(ref mRemoteEndPoint);
-                    await Task.Delay(2000); 
-                    var reply = Encoding.UTF8.GetBytes("pong");
-                    mServer.Send(reply, mRemoteEndPoint);
+                    
+                    var reciveMessage = Encoding.UTF8.GetString(byteArray);
+                    mLogger.LogTrace("Recive message {reciveMessage} from remote ep {remoteEndPoint}", reciveMessage, mRemoteEndPoint);
 
-                    mLogger.LogTrace("Remote ep {remoteEndPoint}", mRemoteEndPoint);
+                    mServer.Send(mReply, mRemoteEndPoint);
+                    mLogger.LogTrace("Send {reply} to remote ep {remoteEndPoint}", mReply, mRemoteEndPoint);
                 }
             }, stoppingToken);
         }
