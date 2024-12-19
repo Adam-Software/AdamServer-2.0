@@ -19,7 +19,7 @@ namespace AdamServer.Services.Common
 
             mServer = new UdpClient(11000)
             {
-                EnableBroadcast = true
+                 //EnableBroadcast = true
             };
 
             mLogger.LogTrace("Start FindMe service!");
@@ -28,14 +28,16 @@ namespace AdamServer.Services.Common
       
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            return Task.Run(() =>
+            return Task.Run(async () =>
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     mLogger.LogTrace("FindMe service waiting bradcast...");
                     
                     byte[] byteArray = mServer.Receive(ref mRemoteEndPoint);
-                    mServer.Send(byteArray, mRemoteEndPoint);
+                    await Task.Delay(2000); 
+                    var reply = Encoding.UTF8.GetBytes("pong");
+                    mServer.Send(reply, mRemoteEndPoint);
 
                     mLogger.LogTrace("Remote ep {remoteEndPoint}", mRemoteEndPoint);
                 }
