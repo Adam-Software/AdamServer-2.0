@@ -64,7 +64,6 @@ namespace AdamServer
             PythonMapping.Map(app);
             
             await app.RunAsync();
-            
         }
     }
 }

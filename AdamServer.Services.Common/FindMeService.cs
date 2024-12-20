@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net;
 
 namespace AdamServer.Services.Common
 {
@@ -11,12 +12,15 @@ namespace AdamServer.Services.Common
     {
         private readonly ILogger<FindMeService> mLogger;
         private readonly UdpClient mServer;
-        private readonly byte[] mReply = Encoding.UTF8.GetBytes("pong");
+        private readonly byte[] mReply;
 
         public FindMeService(IServiceProvider serviceProvider)
         {
             mLogger = serviceProvider.GetRequiredService<ILogger<FindMeService>>();
             mServer = new UdpClient(11000);
+
+            var hostname = Dns.GetHostName(); 
+            mReply = Encoding.UTF8.GetBytes($"pong {hostname}");
 
             mLogger.LogTrace("Start FindMe service!");
         }

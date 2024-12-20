@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace AdamServer
 {
+    [Obsolete]
     public sealed class ProgramHostedService : IHostedService, IHostedLifecycleService
     {
         #region Services
