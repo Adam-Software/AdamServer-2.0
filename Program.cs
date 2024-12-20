@@ -5,8 +5,10 @@ using AdamServer.Services.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Core;
+using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
@@ -17,7 +19,7 @@ namespace AdamServer
     {
         static async Task Main(string[] args)
         {
-            WebApplicationBuilder builder = WebApplication.CreateSlimBuilder(args); 
+            WebApplicationBuilder builder = WebApplication.CreateBuilder(args); 
             builder.Configuration.Sources.Clear();
             builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
@@ -49,15 +51,20 @@ namespace AdamServer
                 builder.Services.AddSingleton<IShellCommandService, Services.Windows.ShellCommandService>();
             }
 
-            builder.Services.AddHostedService<ProgramHostedService>();
+            
             builder.Services.AddSingleton<ITcpPythonStreamClientService, TcpPythonStreamClientService>();
             builder.Services.AddHostedService<FindMeService>();
-            
+
+            //builder.Services.AddHostedService<ProgramHostedService>();
+
+            //builder.Services.Configure<HostOptions>(opts => opts.ShutdownTimeout = TimeSpan.FromSeconds(15));
+
             var app = builder.Build();
 
             PythonMapping.Map(app);
             
             await app.RunAsync();
+            
         }
     }
 }

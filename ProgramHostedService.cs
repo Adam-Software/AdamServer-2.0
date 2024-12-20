@@ -13,6 +13,7 @@ namespace AdamServer
         #region Services
         
         private readonly ILogger<ProgramHostedService> mLoggerService;
+        private readonly IFindMeService mFindMeService;
 
         #endregion
 
@@ -25,6 +26,7 @@ namespace AdamServer
         public ProgramHostedService(IServiceProvider serviceProvider)
         {
             mLoggerService = serviceProvider.GetService<ILogger<ProgramHostedService>>();
+            mFindMeService = serviceProvider.GetService<IFindMeService>();  
 
             var option = serviceProvider.GetService<IAppSettingsOptionsService>();
             var appLifetime = serviceProvider.GetService<IHostApplicationLifetime>();
@@ -49,11 +51,13 @@ namespace AdamServer
         public Task StartedAsync(CancellationToken cancellationToken)
         {
             mLoggerService.LogTrace("3. StartedAsync has been called.");
+            //mFindMeService.ExecuteAsync(cancellationToken);
             return mCompletedTask;
         }
 
         private void OnStarted()
         {
+            
             mLoggerService.LogTrace("4. OnStarted has been called.");
         }
 
@@ -72,6 +76,8 @@ namespace AdamServer
         public Task StopAsync(CancellationToken cancellationToken)
         {
             mLoggerService.LogTrace("7. StopAsync has been called.");
+            //mFindMeService.StopAsync(cancellationToken);
+
             return mCompletedTask;
         }
 
@@ -85,6 +91,5 @@ namespace AdamServer
         {
             mLoggerService.LogTrace("9. OnStopped has been called.");
         }
-
     }
 }

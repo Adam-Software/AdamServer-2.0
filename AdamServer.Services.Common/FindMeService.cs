@@ -1,7 +1,6 @@
 ﻿using AdamServer.Interfaces;
 using Microsoft.Extensions.Hosting;
 using System.Net.Sockets;
-using System.Net;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,38 +11,47 @@ namespace AdamServer.Services.Common
     {
         private readonly ILogger<FindMeService> mLogger;
         private readonly UdpClient mServer;
-        private IPEndPoint mRemoteEndPoint = new(IPAddress.Any, 11000);
-        byte[] mReply = Encoding.UTF8.GetBytes("pong");
+        private readonly byte[] mReply = Encoding.UTF8.GetBytes("pong");
 
         public FindMeService(IServiceProvider serviceProvider)
         {
             mLogger = serviceProvider.GetRequiredService<ILogger<FindMeService>>();
-
-            mServer = new UdpClient(11000)
-            {
-                 //EnableBroadcast = true
-            };
+            mServer = new UdpClient(11000);
 
             mLogger.LogTrace("Start FindMe service!");
         }
 
-      
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            return Task.Run(() =>
-            {
-                while (!stoppingToken.IsCancellationRequested)
-                {
-                    mLogger.LogTrace("FindMe service waiting bradcast...");
-                    byte[] byteArray = mServer.Receive(ref mRemoteEndPoint);
-                    
-                    var reciveMessage = Encoding.UTF8.GetString(byteArray);
-                    mLogger.LogTrace("Recive message {reciveMessage} from remote ep {remoteEndPoint}", reciveMessage, mRemoteEndPoint);
+            mLogger.LogTrace("FindMe service waiting bradcast...");
 
-                    mServer.Send(mReply, mRemoteEndPoint);
-                    mLogger.LogTrace("Send {reply} to remote ep {remoteEndPoint}", mReply, mRemoteEndPoint);
+            try
+            {
+                while (!stoppingToken.IsCancellationRequested) 
+                {
+                    UdpReceiveResult reciveResult = await mServer.ReceiveAsync(stoppingToken);
+
+                    var reciveMessage = Encoding.UTF8.GetString(reciveResult.Buffer);
+                    mLogger.LogTrace("Recive message {reciveMessage} from remote ep {remoteEndPoint}", reciveMessage, reciveResult.RemoteEndPoint);
+
+                    await mServer.SendAsync(mReply, reciveResult.RemoteEndPoint, stoppingToken);
+                    mLogger.LogTrace("Send {reply} to remote ep {remoteEndPoint}", Encoding.UTF8.GetString(mReply), reciveResult.RemoteEndPoint);
                 }
-            }, stoppingToken);
+            }
+            catch (OperationCanceledException) 
+            { 
+                mLogger.LogTrace("Udp server service was canceled"); 
+            }
+            catch (Exception ex) 
+            { 
+                mLogger.LogError("Error {Exception}", ex.Message); 
+            }
+            finally { mServer.Close(); }
+        }
+
+        public override void Dispose()
+        {
+            mServer?.Dispose();
         }
     }
 }
