@@ -38,6 +38,7 @@ namespace AdamServer.Services.Common
                     var reciveMessage = Encoding.UTF8.GetString(reciveResult.Buffer);
                     mLogger.LogTrace("Recive message {reciveMessage} from remote ep {remoteEndPoint}", reciveMessage, reciveResult.RemoteEndPoint);
 
+                    await Task.Delay(1000);
                     await mServer.SendAsync(mReply, reciveResult.RemoteEndPoint, stoppingToken);
                     mLogger.LogTrace("Send {reply} to remote ep {remoteEndPoint}", Encoding.UTF8.GetString(mReply), reciveResult.RemoteEndPoint);
                 }
