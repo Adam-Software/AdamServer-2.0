@@ -1,33 +1,34 @@
 ﻿using AdamServer.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using PHS.Networking.Enums;
 using System.Diagnostics;
 using System.Text;
+using Tcp.NET.Client;
+using Tcp.NET.Client.Events.Args;
+using Tcp.NET.Client.Models;
 using TcpSharp;
 
 namespace AdamServer.Services.Common
 {
     public class TcpPythonStreamClientService : ITcpPythonStreamClientService, IDisposable
     {
+        #region Var
+
         private readonly ILogger<TcpPythonStreamClientService> mLoggerService;
-        private readonly TcpSharpSocketClient mTcpSocketClient;
-        private readonly Encoding mSystemEncoding = Console.OutputEncoding;
-        private bool mIsOutputEnded = false;
-        private bool mIsProcessEnded = false;
-        private Process mProcess;
+        private readonly IPythonCommandService mPythonCommandService;
+        private readonly ITcpNETClient mTcpClient;
+
+        #endregion
 
         #region ~
 
         public TcpPythonStreamClientService(IServiceProvider serviceProvider) 
         {
             mLoggerService = serviceProvider.GetRequiredService<ILogger<TcpPythonStreamClientService>>();
+            mPythonCommandService = serviceProvider.GetRequiredService<IPythonCommandService>();
 
-            mTcpSocketClient = new TcpSharpSocketClient
-            {
-                Host = "127.0.0.1",
-                KeepAlive = false,
-                Port = 18000,
-            };
+            mTcpClient = new TcpNETClient(new ParamsTcpClient("127.0.0.1", 18000, "\r\n", isSSL: false));
 
             Subscribe();
         }
@@ -38,175 +39,100 @@ namespace AdamServer.Services.Common
 
         private void Subscribe()
         {
-            mTcpSocketClient.OnConnected += OnConnected;
-            mTcpSocketClient.OnDataReceived += OnDataReceived;
-            mTcpSocketClient.OnDisconnected += OnDisconnected;
+            mTcpClient.ConnectionEvent += ConnectionEvent;
+            mTcpClient.MessageEvent += MessageEvent;
+            mTcpClient.ErrorEvent += ErrorEvent;
+
+            mPythonCommandService.RaiseProcessAndOutputEndedEvent += RaiseProcessAndOutputEndedEvent;
+            mPythonCommandService.RaiseProcessDataAndErrorOutput += RaiseProcessDataAndErrorOutput;
         }
 
         private void UnSubscribe()
         {
-            mTcpSocketClient.OnConnected -= OnConnected;
-            mTcpSocketClient.OnDataReceived -= OnDataReceived;
-            mTcpSocketClient.OnDisconnected -= OnDisconnected;
+            mTcpClient.ConnectionEvent -= ConnectionEvent;
+            mTcpClient.MessageEvent -= MessageEvent;
+            mTcpClient.ErrorEvent -= ErrorEvent;
+            
+            mPythonCommandService.RaiseProcessAndOutputEndedEvent -= RaiseProcessAndOutputEndedEvent;
+            mPythonCommandService.RaiseProcessDataAndErrorOutput -= RaiseProcessDataAndErrorOutput;
         }
 
         #endregion
 
         #region Events
 
-        private void OnConnected(object sender, OnClientConnectedEventArgs e)
+        private void ConnectionEvent(object sender, TcpConnectionClientEventArgs args)
         {
-            mLoggerService.LogInformation("Clien connected to server {ServerIPAddress} port {port}", e.ServerIPAddress, e.ServerPort);
-            
-            StartProcess(false);
-        }
+            var connectionEvent = args.ConnectionEventType;
 
-        private void OnDataReceived(object sender, OnClientDataReceivedEventArgs e)
-        {
-            string result = mSystemEncoding.GetString(e.Data);
-
-            if (string.IsNullOrWhiteSpace(result))
-                mProcess.StandardInput.WriteLine(result);
-        }
-
-        private void OnDisconnected(object sender, OnClientDisconnectedEventArgs e)
-        {
-            mLoggerService.LogInformation("Client disconnected Reason {Reason}", e.Reason);
-
-            mIsOutputEnded = true;
-            mIsProcessEnded = true;
-
-            if (!mProcess.HasExited)
+            if (connectionEvent == ConnectionEventType.Connected) 
             {
-                mProcess.CancelErrorRead();
-                mProcess.CancelOutputRead();
-
-                mProcess.Kill();
+                mLoggerService.LogInformation("Client connected to server");
+                mPythonCommandService.ExecuteCommandAsync();
             }
 
-            //mConnectedClient = null;
+            if(connectionEvent == ConnectionEventType.Disconnect)
+            {
+                mLoggerService.LogInformation("Client disconnected");
+                
+                if(!mPythonCommandService.HasExited) 
+                    mPythonCommandService.CloseProcess();
+            }
         }
+
+        private void MessageEvent(object sender, TcpMessageClientEventArgs args)
+        {
+            var messageEvent = args.MessageEventType;
+            
+            if(messageEvent == MessageEventType.Receive) 
+                mPythonCommandService.WriteDataToProcessStandartInpu(args.Bytes);
+        }
+
+        private void ErrorEvent(object sender, TcpErrorClientEventArgs args)
+        {
+         
+        }
+
+
+        //when process done, client disconect
+        private void RaiseProcessAndOutputEndedEvent(object sender)
+        {
+            mTcpClient.DisconnectAsync();
+        }
+
+        private void RaiseProcessDataAndErrorOutput(object sender, string data)
+        {
+            mTcpClient.SendAsync($"{data}\n");
+        }
+
 
         #endregion
 
         #region Public field
 
-        public Task ExecuteAsync(CancellationToken stoppingToken = default)
+        public void Connect()
         {
             try
             {
-                mTcpSocketClient.Connect();
+                mTcpClient.ConnectAsync();
             }
             catch(Exception ex)
             {
                 mLoggerService.LogError("TcpSockerClient connected error: {error}", ex.Message);
-                return Task.CompletedTask;
             }
 
-            mLoggerService.LogTrace("TcpSockerClient connected is {Connected}", mTcpSocketClient.Connected);
-
-            return Task.Run(() =>
-            {
-                while (mIsOutputEnded && mIsProcessEnded)
-                {
-                    mIsOutputEnded = false;
-                    mIsProcessEnded = false;
-
-                    mTcpSocketClient.Disconnect();
-                }
-                
-            }, stoppingToken);
+            mLoggerService.LogTrace("TcpSockerClient IsRunning: {IsRunning}", mTcpClient.IsRunning);
         }
 
-        public void StopAsync()
+        public void Disconnect()
         {
-            mTcpSocketClient.Disconnect();
+            mTcpClient.DisconnectAsync();
         }
 
         #endregion
 
         #region Private methods
 
-        private  void StartProcess(bool withDebug = false)
-        {
-            string arg = string.Format("-u -m test2");
-
-            if (withDebug)
-                arg = string.Format("-u -m pdb test2.py");
-
-            ProcessStartInfo proccesInfo = new()
-            {
-                FileName = "C:\\Users\\Professional\\Downloads\\python-3.13.0-embed-amd64\\python.exe",
-                WorkingDirectory = "C:\\Users\\Professional\\Downloads\\python-3.13.0-embed-amd64\\",
-                Arguments = arg, 
-                UseShellExecute = false,
-                CreateNoWindow = true, 
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-            };
-
-            mProcess = new()
-            {
-                StartInfo = proccesInfo,
-                EnableRaisingEvents = true,
-            };
-
-            mProcess.Exited += ProcessExited;
-            mProcess.OutputDataReceived += ProcessOutputDataReceived;
-            mProcess.ErrorDataReceived += ProcessErrorDataReceived;
-            mProcess.Start();
-
-            mProcess.BeginOutputReadLine();
-            mProcess.BeginErrorReadLine();
-            mProcess.WaitForExit();
-        }
-
-        private void ProcessErrorDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            if (!string.IsNullOrEmpty(e.Data))
-            {
-                try
-                {
-                    mTcpSocketClient.SendString(string.Join("\n", e.Data), mSystemEncoding);
-                    mIsOutputEnded = false;
-                }
-                catch
-                {
-                    mIsOutputEnded = true;
-                }
-                
-            }
-            else
-            {
-                mIsOutputEnded = true;
-            }
-        }
-
-        private void ProcessOutputDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            if (!string.IsNullOrEmpty(e.Data))
-            {
-                try
-                {
-                    mTcpSocketClient.SendString($"{e.Data}\n", mSystemEncoding);
-                    mIsOutputEnded = false;
-                }
-                catch 
-                {
-                    mIsOutputEnded = true;
-                }
-            }
-            else
-            {
-                mIsOutputEnded = true;
-            }
-        }
-
-        private void ProcessExited(object sender, EventArgs e)
-        {
-            mIsProcessEnded = true;
-        }
 
         #endregion
 

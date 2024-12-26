@@ -30,14 +30,14 @@ namespace AdamServer.Interfaces.WebApiHandlerService
         public string ExecutePythonCommandAsync(PythonCommand command)
         {
             File.WriteAllText("C:\\Users\\Professional\\Downloads\\python-3.13.0-embed-amd64\\test2.py", command.TextCommand);
-            Task.Run(() => mTcpPythonStreamClientService.ExecuteAsync());
+            Task.Run(() => mTcpPythonStreamClientService.Connect());
             return "Ok";
             
         }
 
         public string StopExecutePythonCommandAsync()
         {
-            mTcpPythonStreamClientService.StopAsync();
+            mTcpPythonStreamClientService.Disconnect();
             return "Ok";
         }
     }
