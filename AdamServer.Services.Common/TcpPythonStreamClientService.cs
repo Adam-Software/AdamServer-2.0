@@ -17,7 +17,9 @@ namespace AdamServer.Services.Common
 
         private readonly ILogger<TcpPythonStreamClientService> mLoggerService;
         private readonly IPythonCommandService mPythonCommandService;
-        private readonly ITcpNETClient mTcpClient;
+        private readonly TcpNETClient mTcpClient;
+        private CancellationTokenSource mToken;
+
 
         #endregion
 
@@ -67,8 +69,9 @@ namespace AdamServer.Services.Common
 
             if (connectionEvent == ConnectionEventType.Connected) 
             {
+                mToken = new CancellationTokenSource();
                 mLoggerService.LogInformation("Client connected to server");
-                mPythonCommandService.ExecuteCommandAsync();
+                mPythonCommandService.ExecuteCommandAsync(mToken.Token);
             }
 
             if(connectionEvent == ConnectionEventType.Disconnect)
@@ -77,6 +80,8 @@ namespace AdamServer.Services.Common
                 
                 if(!mPythonCommandService.HasExited) 
                     mPythonCommandService.CloseProcess();
+
+                mToken = null;
             }
         }
 
@@ -102,7 +107,14 @@ namespace AdamServer.Services.Common
 
         private void RaiseProcessDataAndErrorOutput(object sender, string data)
         {
-            mTcpClient.SendAsync($"{data}\n");
+            try
+            {
+                mTcpClient.SendAsync($"{data}\n");
+            }
+            catch (Exception ex) 
+            {
+                mLoggerService.LogError("Error send data: {error}", ex.Message);
+            }
         }
 
 
@@ -110,7 +122,7 @@ namespace AdamServer.Services.Common
 
         #region Public field
 
-        public void Connect()
+        public Task ConnectAsync()
         {
             try
             {
@@ -121,12 +133,25 @@ namespace AdamServer.Services.Common
                 mLoggerService.LogError("TcpSockerClient connected error: {error}", ex.Message);
             }
 
-            mLoggerService.LogTrace("TcpSockerClient IsRunning: {IsRunning}", mTcpClient.IsRunning);
+            return Task.CompletedTask;
         }
 
-        public void Disconnect()
+        public Task DisconnectAsync()
         {
-            mTcpClient.DisconnectAsync();
+            try
+            {
+                //mToken.Cancel();
+                //mPythonCommandService.CloseProcess();
+                mTcpClient.DisconnectAsync();
+            }
+            catch (Exception ex)
+            {
+                mLoggerService.LogError("TcpSockerClient disconnect error: {error}", ex.Message);
+            }
+     
+
+            return Task.CompletedTask;
+            
         }
 
         #endregion

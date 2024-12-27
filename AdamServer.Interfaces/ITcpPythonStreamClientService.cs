@@ -1,8 +1,10 @@
-﻿namespace AdamServer.Interfaces
+﻿using System.Threading.Tasks;
+
+namespace AdamServer.Interfaces
 {
     public interface ITcpPythonStreamClientService
     {
-        public void Connect();
-        public void Disconnect();
+        public Task ConnectAsync();
+        public Task DisconnectAsync();
     }
 }

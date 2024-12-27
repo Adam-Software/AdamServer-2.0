@@ -1,4 +1,5 @@
 ﻿using AdamServer.Interfaces;
+using AdamServer.Interfaces.PythonCommandServiceDependency;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
@@ -42,18 +43,12 @@ namespace AdamServer.Services.Windows
 
         #region Public fields
 
-        
-        private readonly Encoding mSystemOutputEncoding = Console.OutputEncoding;
-        public Encoding SystemOutputEncoding 
-        {
-            get { return mSystemOutputEncoding; }
-        }
+        public bool HasExited => mProcess.HasExited;
 
         #endregion
 
         #region Public methods
 
-        public bool HasExited => mProcess.HasExited;
 
         public Task ExecuteCommandAsync(CancellationToken stoppingToken = default)
         {
@@ -75,7 +70,7 @@ namespace AdamServer.Services.Windows
 
         public void WriteDataToProcessStandartInpu(byte[] data)
         {
-            string result = mSystemOutputEncoding.GetString(data);
+            string result = Console.OutputEncoding.GetString(data);
 
             if (!string.IsNullOrEmpty(result)) 
                 WriteLineToProcessStandartInput(result);
@@ -134,6 +129,8 @@ namespace AdamServer.Services.Windows
             {
                 while (mIsOutputEnded && mIsProcessEnded)
                 {
+                    stoppingToken.ThrowIfCancellationRequested();
+
                     mIsOutputEnded = false;
                     mIsProcessEnded = false;
 
@@ -144,11 +141,9 @@ namespace AdamServer.Services.Windows
 
                         mProcess.Close();
                     }
-
-                    OnRaiseProcessAndOutputEndedEvent();
                 }
 
-            }, stoppingToken);
+            });
         }
 
         private void OnProcessDataAndErrorOutput(string data)
@@ -186,15 +181,18 @@ namespace AdamServer.Services.Windows
 
         private void ProcessExited(object sender, EventArgs e)
         {
-           
-            //int exitCode = mProcess.ExitCode;
-            //DateTime startTime = mProcess.StartTime;
-            //DateTime exitTime = mProcess.ExitTime;
-            //TimeSpan totalProcessorTime = mProcess.TotalProcessorTime;
-            //TimeSpan userProcessorTime = mProcess.UserProcessorTime;
-            //string machineName = mProcess.MachineName;
+            ExitDataEventArgs exitDataEventArgs = new ExitDataEventArgs
+            {
+                 ExitCode = mProcess.ExitCode,
+                 ExitTime = mProcess.ExitTime,
+                 MachineName = mProcess.MachineName,
+                 StartTime = mProcess.StartTime,
+                 TotalProcessorTime = mProcess.TotalProcessorTime,
+                 UserProcessorTime = mProcess.UserProcessorTime,
 
+            };
 
+            OnRaiseProcessAndOutputEndedEvent(exitDataEventArgs);
             mIsProcessEnded = true;
         }
 
@@ -229,8 +227,9 @@ namespace AdamServer.Services.Windows
 
         #region RaiseEvents
 
-        protected virtual void OnRaiseProcessAndOutputEndedEvent()
+        protected virtual void OnRaiseProcessAndOutputEndedEvent(ExitDataEventArgs eventArgs)
         {
+            var exit = eventArgs;
             ProcessAndOutputEndedEventHandler raiseEvent = RaiseProcessAndOutputEndedEvent;
             raiseEvent?.Invoke(this);
         }

@@ -2,13 +2,22 @@
 @port=5000
 @host={{hostname}}:{{port}}
 
+### Non-infinity cicle
 POST http://{{host}}/api/PythonCommand/ExecuteAsync
 Content-Type: application/json
 Accept-Language: en-US,en;q=0.5
 {
-  "TextCommand" : "for count in range(10000000):  print('Hi')"
+  "TextCommand" : "for count in range(1000):  print('Hi')"
 }
 
-###
+### Infinity cicle
+POST http://{{host}}/api/PythonCommand/ExecuteAsync
+Content-Type: application/json
+Accept-Language: en-US,en;q=0.5
+{
+  "TextCommand" : "while(True):  print('Hi')"
+}
 
-PUT http://{{host}}/api/PythonCommand/StopExecuteAsync
+### Stop process
+GET http://{{host}}/api/PythonCommand/StopExecuteAsync
+Content-Type: application/json
