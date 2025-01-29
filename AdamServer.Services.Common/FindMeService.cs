@@ -12,15 +12,12 @@ namespace AdamServer.Services.Common
     {
         private readonly ILogger<FindMeService> mLogger;
         private readonly UdpClient mServer;
-        private readonly byte[] mReply;
+        private readonly byte[] mReply = Encoding.UTF8.GetBytes("pong");
 
         public FindMeService(IServiceProvider serviceProvider)
         {
             mLogger = serviceProvider.GetRequiredService<ILogger<FindMeService>>();
             mServer = new UdpClient(11000);
-
-            var hostname = Dns.GetHostName(); 
-            mReply = Encoding.UTF8.GetBytes($"pong {hostname}");
 
             mLogger.LogTrace("Start FindMe service!");
         }
@@ -35,12 +32,15 @@ namespace AdamServer.Services.Common
                 {
                     UdpReceiveResult reciveResult = await mServer.ReceiveAsync(stoppingToken);
 
-                    var reciveMessage = Encoding.UTF8.GetString(reciveResult.Buffer);
+                    string reciveMessage = Encoding.UTF8.GetString(reciveResult.Buffer);
                     mLogger.LogTrace("Recive message {reciveMessage} from remote ep {remoteEndPoint}", reciveMessage, reciveResult.RemoteEndPoint);
 
-                    await Task.Delay(1000, stoppingToken);
-                    await mServer.SendAsync(mReply, reciveResult.RemoteEndPoint, stoppingToken);
-                    mLogger.LogTrace("Send {reply} to remote ep {remoteEndPoint}", Encoding.UTF8.GetString(mReply), reciveResult.RemoteEndPoint);
+                    //await Task.Delay(1000, stoppingToken);
+                    if(reciveMessage == "ping")
+                    {
+                        await mServer.SendAsync(mReply, reciveResult.RemoteEndPoint, stoppingToken);
+                        mLogger.LogTrace("Send {reply} to remote ep {remoteEndPoint}", Encoding.UTF8.GetString(mReply), reciveResult.RemoteEndPoint);
+                    }
                 }
             }
             catch (OperationCanceledException) 
@@ -51,7 +51,10 @@ namespace AdamServer.Services.Common
             { 
                 mLogger.LogError("Error {Exception}", ex.Message); 
             }
-            finally { mServer.Close(); }
+            finally 
+            { 
+                mServer.Close(); 
+            }
         }
 
         public override void Dispose()

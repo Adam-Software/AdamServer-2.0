@@ -7,7 +7,6 @@ using System.Text;
 using Tcp.NET.Client;
 using Tcp.NET.Client.Events.Args;
 using Tcp.NET.Client.Models;
-using TcpSharp;
 
 namespace AdamServer.Services.Common
 {
@@ -16,10 +15,13 @@ namespace AdamServer.Services.Common
         #region Var
 
         private readonly ILogger<TcpPythonStreamClientService> mLoggerService;
-        private readonly IPythonCommandService mPythonCommandService;
         private readonly TcpNETClient mTcpClient;
-        private CancellationTokenSource mToken;
+        //private readonly Encoding mSystemEncoding = Console.OutputEncoding;
+        private Process mProcess;
 
+        private bool mIsOutputEnded = false;
+        private bool mIsProcessEnded = false;
+        
 
         #endregion
 
@@ -28,8 +30,6 @@ namespace AdamServer.Services.Common
         public TcpPythonStreamClientService(IServiceProvider serviceProvider) 
         {
             mLoggerService = serviceProvider.GetRequiredService<ILogger<TcpPythonStreamClientService>>();
-            mPythonCommandService = serviceProvider.GetRequiredService<IPythonCommandService>();
-
             mTcpClient = new TcpNETClient(new ParamsTcpClient("127.0.0.1", 18000, "\r\n", isSSL: false));
 
             Subscribe();
@@ -44,9 +44,6 @@ namespace AdamServer.Services.Common
             mTcpClient.ConnectionEvent += ConnectionEvent;
             mTcpClient.MessageEvent += MessageEvent;
             mTcpClient.ErrorEvent += ErrorEvent;
-
-            mPythonCommandService.RaiseProcessAndOutputEndedEvent += RaiseProcessAndOutputEndedEvent;
-            mPythonCommandService.RaiseProcessDataAndErrorOutput += RaiseProcessDataAndErrorOutput;
         }
 
         private void UnSubscribe()
@@ -54,9 +51,6 @@ namespace AdamServer.Services.Common
             mTcpClient.ConnectionEvent -= ConnectionEvent;
             mTcpClient.MessageEvent -= MessageEvent;
             mTcpClient.ErrorEvent -= ErrorEvent;
-            
-            mPythonCommandService.RaiseProcessAndOutputEndedEvent -= RaiseProcessAndOutputEndedEvent;
-            mPythonCommandService.RaiseProcessDataAndErrorOutput -= RaiseProcessDataAndErrorOutput;
         }
 
         #endregion
@@ -69,54 +63,40 @@ namespace AdamServer.Services.Common
 
             if (connectionEvent == ConnectionEventType.Connected) 
             {
-                mToken = new CancellationTokenSource();
-                mLoggerService.LogInformation("Client connected to server");
-                mPythonCommandService.ExecuteCommandAsync(mToken.Token);
+                StartProcess(false);
             }
 
             if(connectionEvent == ConnectionEventType.Disconnect)
             {
-                mLoggerService.LogInformation("Client disconnected");
-                
-                if(!mPythonCommandService.HasExited) 
-                    mPythonCommandService.CloseProcess();
+                mIsOutputEnded = true;
+                mIsProcessEnded = true;
 
-                mToken = null;
+                if (!mProcess.HasExited)
+                {
+                    mProcess.CancelErrorRead();
+                    mProcess.CancelOutputRead();
+
+                    mProcess.Close();
+                }
             }
         }
 
         private void MessageEvent(object sender, TcpMessageClientEventArgs args)
         {
             var messageEvent = args.MessageEventType;
-            
-            if(messageEvent == MessageEventType.Receive) 
-                mPythonCommandService.WriteDataToProcessStandartInpu(args.Bytes);
+
+            if(messageEvent == MessageEventType.Receive)
+            {
+                var message = args.Message;
+                if (string.IsNullOrEmpty(message))
+                    mProcess.StandardInput.WriteLine(message);
+            }
         }
 
         private void ErrorEvent(object sender, TcpErrorClientEventArgs args)
         {
          
         }
-
-
-        //when process done, client disconect
-        private void RaiseProcessAndOutputEndedEvent(object sender)
-        {
-            mTcpClient.DisconnectAsync();
-        }
-
-        private void RaiseProcessDataAndErrorOutput(object sender, string data)
-        {
-            try
-            {
-                mTcpClient.SendAsync($"{data}\n");
-            }
-            catch (Exception ex) 
-            {
-                mLoggerService.LogError("Error send data: {error}", ex.Message);
-            }
-        }
-
 
         #endregion
 
@@ -133,15 +113,21 @@ namespace AdamServer.Services.Common
                 mLoggerService.LogError("TcpSockerClient connected error: {error}", ex.Message);
             }
 
-            return Task.CompletedTask;
+            return Task.Run(() =>
+            {
+                while (mIsOutputEnded && mIsProcessEnded)
+                {
+                    mIsOutputEnded = false;
+                    mIsProcessEnded = false;
+                    mTcpClient.DisconnectAsync();
+                }
+            });
         }
 
         public Task DisconnectAsync()
         {
             try
             {
-                //mToken.Cancel();
-                //mPythonCommandService.CloseProcess();
                 mTcpClient.DisconnectAsync();
             }
             catch (Exception ex)
@@ -158,6 +144,81 @@ namespace AdamServer.Services.Common
 
         #region Private methods
 
+        private void StartProcess(bool withDebug = false)
+        {
+            string arg = string.Format("-u -m test2");
+            if (withDebug)
+                arg = string.Format("-u -m pdb test2.py");
+
+            ProcessStartInfo proccesInfo = new()
+            {
+                FileName = "C:\\Users\\Professional\\Downloads\\python-3.13.0-embed-amd64\\python.exe",
+                WorkingDirectory = "C:\\Users\\Professional\\Downloads\\python-3.13.0-embed-amd64\\",
+                Arguments = arg,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+            };
+            mProcess = new()
+            {
+                StartInfo = proccesInfo,
+                EnableRaisingEvents = true,
+            };
+
+            mProcess.Exited += ProcessExited;
+            mProcess.OutputDataReceived += ProcessOutputDataReceived;
+            mProcess.ErrorDataReceived += ProcessErrorDataReceived;
+            mProcess.Start();
+            mProcess.BeginOutputReadLine();
+            mProcess.BeginErrorReadLine();
+            mProcess.WaitForExit();
+        }
+
+        private void ProcessErrorDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                try
+                {
+                    mTcpClient.SendAsync(string.Join("\n", e.Data));
+                    mIsOutputEnded = false;
+                }
+                catch
+                {
+                    mIsOutputEnded = true;
+                }
+
+            }
+            else
+            {
+                mIsOutputEnded = true;
+            }
+        }
+        private void ProcessOutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                try
+                {
+                    mTcpClient.SendAsync($"{e.Data}\n");
+                    mIsOutputEnded = false;
+                }
+                catch
+                {
+                    mIsOutputEnded = true;
+                }
+            }
+            else
+            {
+                mIsOutputEnded = true;
+            }
+        }
+        private void ProcessExited(object sender, EventArgs e)
+        {
+            mIsProcessEnded = true;
+        }
 
         #endregion
 

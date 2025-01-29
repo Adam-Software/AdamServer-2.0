@@ -39,7 +39,7 @@ namespace AdamServer
 
             builder.Services.AddSingleton<IWebApiHandlerService, WebApiHandlerService>();
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            /*if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 builder.Services.AddSingleton<IPythonCommandService, Services.Linux.PythonCommandService>();
             }
@@ -47,10 +47,11 @@ namespace AdamServer
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 builder.Services.AddSingleton<IPythonCommandService, Services.Windows.PythonCommandService>();
-            }
+            }*/
 
-            //builder.Services.AddHostedService<ProgramHostedService>();
+            builder.Services.AddHostedService<FindMeService>();
             builder.Services.AddSingleton<ITcpPythonStreamClientService, TcpPythonStreamClientService>();
+            
             
             var app = builder.Build();
 
