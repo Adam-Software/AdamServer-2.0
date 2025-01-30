@@ -18,14 +18,14 @@ namespace AdamServer.Services.Common
         {
             mLogger = serviceProvider.GetRequiredService<ILogger<FindMeService>>();
             mServer = new UdpClient(11000);
-
+            
             mLogger.LogTrace("Start FindMe service!");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            mLogger.LogTrace("FindMe service waiting bradcast...");
-
+            mLogger.LogTrace("FindMe service waiting bradcast at... ");
+            
             try
             {
                 while (!stoppingToken.IsCancellationRequested) 
@@ -35,7 +35,6 @@ namespace AdamServer.Services.Common
                     string reciveMessage = Encoding.UTF8.GetString(reciveResult.Buffer);
                     mLogger.LogTrace("Recive message {reciveMessage} from remote ep {remoteEndPoint}", reciveMessage, reciveResult.RemoteEndPoint);
 
-                    //await Task.Delay(1000, stoppingToken);
                     if(reciveMessage == "ping")
                     {
                         await mServer.SendAsync(mReply, reciveResult.RemoteEndPoint, stoppingToken);
